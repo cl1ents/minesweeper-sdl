@@ -84,46 +84,83 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			case SDL_QUIT:
 				running = 0;
 				break;
-			/*case SDL_MOUSEBUTTONDOWN:
-				square s;
-				s.x = e.button.x;
-				s.y = e.button.y;
-				s.w = rand() % 50 + 25;
-				s.h = rand() % 50 + 25;
-				s.yvelocity = -500;
-				s.xvelocity = rand() % 500 - 250;
-				s.lastUpdate = SDL_GetTicks();
-				s.born = SDL_GetTicks();
-				squares.push_back(s);
-				break;*/
+				/*case SDL_MOUSEBUTTONDOWN:
+					square s;
+					s.x = e.button.x;
+					s.y = e.button.y;
+					s.w = rand() % 50 + 25;
+					s.h = rand() % 50 + 25;
+					s.yvelocity = -500;
+					s.xvelocity = rand() % 500 - 250;
+					s.lastUpdate = SDL_GetTicks();
+					s.born = SDL_GetTicks();
+					squares.push_back(s);
+					break;*/
 			}
 		}
+
 
 		int w;
 		int h;
 
 		SDL_GetWindowSize(window, &w, &h);
 
-		int cx = w / 2;
-		int cy = h / 2;
+		int centerX = w / 2;
+		int centerY = h / 2;
 
-		int smallest = min(w * .8, h * .8);
+		{ // Animation Test
 
-		int rw = smallest;
-		int rh = smallest;
+			int smallest = min(w * .2, h * .2);
 
-		int frame = (SDL_GetTicks() % (frameDuration * frameCount)) / frameDuration;
+			int rw = smallest;
+			int rh = smallest;
 
-		SDL_Rect rec = { cx - (rw / 2), cy - (rh / 2), rw, rh };
-		SDL_Rect trans = { 0, frame * 256, 256, 256 };
-		
-		//for (int x = 0; x < 10; );
+			int frame = (SDL_GetTicks() % (frameDuration * frameCount)) / frameDuration;
 
-		//SDL_Surface* screenSurface = SDL_GetWindowSurface(window);
+			SDL_Rect rec = { 2, 2, rw, rh };
+			SDL_Rect trans = { 0, frame * 256, 256, 256 };
 
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &rec);
-		SDL_RenderCopy(renderer, transplosion, &trans, &rec);
+			//for (int x = 0; x < 10; );
+
+			//SDL_Surface* screenSurface = SDL_GetWindowSurface(window);
+
+			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+			SDL_RenderFillRect(renderer, &rec);
+			SDL_RenderCopy(renderer, transplosion, &trans, &rec);
+		};
+
+		{ // Grid test
+			int gridSize = 20;
+			int smallest = min(w * .8, h * .8);
+			SDL_Rect Place = { 
+				centerX-(smallest/2), centerY - (smallest / 2),
+				smallest, smallest
+			};
+
+			int slotSize = Place.w / gridSize;
+
+			SDL_Rect Slot;
+			Slot.x = Place.x;
+			Slot.y = Place.y;
+			Slot.w = slotSize;
+			Slot.h = slotSize;
+
+			int a = 0;
+			for (int x = 0; x < gridSize; x++)
+			{
+				a = !a;
+				for (int y = 0; y < gridSize; y++) {
+					a = !a;
+					SDL_SetRenderDrawColor(renderer, a ? 255 : 0, a ? 0 : 255, 0, 255);
+
+					Slot.x = Place.x + slotSize * x;
+					Slot.y = Place.y + slotSize * y;
+
+					SDL_RenderFillRect(renderer, &Slot);
+				}
+			}
+				
+		};
 
 		/*
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -165,9 +202,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Frametime: %fms", frameTime * 1000);
-		renderText(buf, dest, renderer);
-		dest.y += 10;
-		sprintf_s(buf, 100, "Frame: %d", frame);
 		renderText(buf, dest, renderer);
 
 		// sprintf(buf, "Current Perf: %f", framePerf);
