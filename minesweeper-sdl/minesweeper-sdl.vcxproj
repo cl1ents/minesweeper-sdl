@@ -115,7 +115,8 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>xcopy /s C:\SDL2\lib\x64\ $(OutputPath) /Y</Command>
+      <Command>xcopy /s C:\SDL2\lib\x64\ $(OutputPath) /F /R /Y /I
+xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

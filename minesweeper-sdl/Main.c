@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -64,6 +65,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	Uint32 totalFrames = 0;
 
 	Uint32 last = SDL_GetTicks();
+	SDL_Texture* transplosion = IMG_LoadTexture(renderer, "./res/transplosion.png");
+	int frameCount = 18;
+	int frameDuration = 70;
 	while (running) {
 		totalFrames++;
 		Uint32 startTicks = SDL_GetTicks();
@@ -95,10 +99,37 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			}
 		}
 
+		int w;
+		int h;
+
+		SDL_GetWindowSize(window, &w, &h);
+
+		int cx = w / 2;
+		int cy = h / 2;
+
+		int smallest = min(w * .8, h * .8);
+
+		int rw = smallest;
+		int rh = smallest;
+
+		int frame = (SDL_GetTicks() % (frameDuration * frameCount)) / frameDuration;
+
+		SDL_Rect rec = { cx - (rw / 2), cy - (rh / 2), rw, rh };
+		SDL_Rect trans = { 0, frame * 256, 256, 256 };
+		
+		//for (int x = 0; x < 10; );
+
+		//SDL_Surface* screenSurface = SDL_GetWindowSurface(window);
+
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		SDL_RenderFillRect(renderer, &rec);
+		SDL_RenderCopy(renderer, transplosion, &trans, &rec);
+
+		/*
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		SDL_Point point[5];
 
-		float dt = (SDL_GetTicks() - last) / 1000.0f;
+		
 		float offsety = sin(SDL_GetTicks() / 1000.0f) * 50;
 		float offsetx = cos(SDL_GetTicks() / 1000.0f) * 50;
 
@@ -113,7 +144,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		point[4].x = 100 + offsetx;
 		point[4].y = 100 + offsety;
 		SDL_RenderDrawLines(renderer, point, 5);
+		*/
 
+		float dt = (SDL_GetTicks() - last) / 1000.0f;
 		if (dt < 6)
 			SDL_Delay(6);
 
@@ -127,8 +160,14 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		char buf[100];
 		sprintf_s(buf, 100, "Current FPS: %f", 1.0f / frameTime);
 		renderText(buf, dest, renderer);
-		dest.y += 24;
+		dest.y += 10;
 		sprintf_s(buf, 100, "Average FPS: %f", 1000.0f / ((float)totalFrameTicks / totalFrames));
+		renderText(buf, dest, renderer);
+		dest.y += 10;
+		sprintf_s(buf, 100, "Frametime: %fms", frameTime * 1000);
+		renderText(buf, dest, renderer);
+		dest.y += 10;
+		sprintf_s(buf, 100, "Frame: %d", frame);
 		renderText(buf, dest, renderer);
 
 		// sprintf(buf, "Current Perf: %f", framePerf);
@@ -137,7 +176,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		SDL_RenderPresent(renderer);
 		last = SDL_GetTicks();
 	}
-
+	SDL_DestroyTexture(transplosion);
 	return 0;
 }
 
@@ -155,9 +194,10 @@ int main(int argc, char* argv[])
 	}
 
 	TTF_Init();
-	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 24);
+	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 10);
 
 	SDL_SetWindowTitle(window, "Hello world!");
+	SDL_SetWindowResizable(window, SDL_TRUE);
 	setWindowColor(renderer, (SDL_Color){ 255, 255, 255, 255 });
 
 	//SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
