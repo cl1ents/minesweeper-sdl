@@ -7,21 +7,38 @@
 #include <time.h>
 #include <string.h>
 
-int setWindowColor(SDL_Renderer* renderer, SDL_Color color)
-{
-	if (SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a) < 0)
-		return -1;
-	if (SDL_RenderClear(renderer) < 0)
-		return -1;
-	return 0;
-}
+#include "GameGrid.h"
+#include "Input.h"
+#include "Array.h"
+
+// CONSTS //
+
+GameGrid game;
+const SDL_Color SlotColors[] = {
+	{128, 128, 128, 255},
+	{192, 192, 192, 255},
+	{0, 0, 255, 255},
+	{0, 255, 0, 255},
+	{255, 0, 0, 255},
+	{0, 0, 128, 255},
+	{0, 129, 127, 255},
+	{0, 0, 0, 255},
+	{50, 50, 50, 255},
+	{255, 255, 255, 255},
+	{255, 255, 255, 255},
+	{0, 0, 0, 255},
+	{50, 0, 0, 255}
+};
 
 TTF_Font* font;
+
+// FUNCTIONS //
+
 void renderText(char* text, SDL_Rect dest, SDL_Renderer *renderer) {
 	SDL_Color fg = { 0, 0, 0 };
 	SDL_Surface* surf = TTF_RenderText_Solid(font, text, fg);
 
-	printf("%s", TTF_GetError());
+	// printf("Error renderText : %s\n", TTF_GetError());
 
 	dest.w = surf->w;
 	dest.h = surf->h;
@@ -37,22 +54,28 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 	{
-		fprintf(stderr, "Error SDL_Init : %s", SDL_GetError());
+		fprintf(stderr, "Error SDL_Init : %s\n", SDL_GetError());
 		return -1;
 	}
 
 	SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_SHOWN, window, renderer);
 	if (window == NULL || *window == NULL)
 	{
-		fprintf(stderr, "Error SDL_CreateWindow : %s", SDL_GetError());
+		fprintf(stderr, "Error SDL_CreateWindow : %s\n", SDL_GetError());
 		return -1;
 	}
 
 	if (renderer == NULL || *renderer == NULL)
 	{
-		fprintf(stderr, "Error SDL_CreateWindow : %s", SDL_GetError());
+		fprintf(stderr, "Error SDL_CreateWindow : %s\n", SDL_GetError());
 		return -1;
 	}
+
+	TTF_Init();
+	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 10);
+
+	SDL_SetWindowTitle(*window, "Hello world!");
+	SDL_SetWindowResizable(*window, SDL_TRUE);
 
 	return 0;
 }
@@ -68,6 +91,21 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	SDL_Texture* transplosion = IMG_LoadTexture(renderer, "./res/transplosion.png");
 	int frameCount = 18;
 	int frameDuration = 70;
+	int moves = 0;
+
+	SDL_Texture* sprites = IMG_LoadTexture(renderer, "./res/sprites.png");
+	int spriteSize = 17;
+
+	int w;
+	int h;
+
+	SDL_GetWindowSize(window, &w, &h);
+
+	Input click;
+	int slotX = -1;
+	int slotY = -1;
+	int slotIndex = -1;
+
 	while (running) {
 		totalFrames++;
 		Uint32 startTicks = SDL_GetTicks();
@@ -78,36 +116,40 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderClear(renderer);
 
+		int clicked = 0;
+		int flag = 0;
+
 		// Event loop
 		while (SDL_PollEvent(&e) != 0) {
 			switch (e.type) {
 			case SDL_QUIT:
 				running = 0;
 				break;
-				/*case SDL_MOUSEBUTTONDOWN:
-					square s;
-					s.x = e.button.x;
-					s.y = e.button.y;
-					s.w = rand() % 50 + 25;
-					s.h = rand() % 50 + 25;
-					s.yvelocity = -500;
-					s.xvelocity = rand() % 500 - 250;
-					s.lastUpdate = SDL_GetTicks();
-					s.born = SDL_GetTicks();
-					squares.push_back(s);
-					break;*/
-			}
+			case SDL_MOUSEBUTTONDOWN:
+				//printf("%d, %d", e.button.x, e.button.y);
+				clicked = 1;
+				flag = e.button.button == SDL_BUTTON_RIGHT;
+				break;
+			case SDL_WINDOWEVENT_RESIZED:
+				SDL_GetWindowSize(window, &w, &h);
+				break;
+			case SDL_KEYDOWN:
+				if (e.key.keysym.sym == SDLK_RETURN)
+					resetGrid(&game);
+				break;
+			};
 		}
 
+		int mouseX;
+		int mouseY;
+		SDL_GetMouseState(&mouseX, &mouseY);
+		SDL_Point mousePosition = { mouseX, mouseY };
 
-		int w;
-		int h;
-
+		float centerX = w / 2.0;
+		float centerY = h / 2.0;
 		SDL_GetWindowSize(window, &w, &h);
 
-		int centerX = w / 2;
-		int centerY = h / 2;
-
+		/*
 		{ // Animation Test
 
 			int smallest = min(w * .2, h * .2);
@@ -117,7 +159,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 			int frame = (SDL_GetTicks() % (frameDuration * frameCount)) / frameDuration;
 
-			SDL_Rect rec = { 2, 2, rw, rh };
+			SDL_Rect rec = { mouseX - rw / 2, mouseY - rh/2, rw, rh };
 			SDL_Rect trans = { 0, frame * 256, 256, 256 };
 
 			//for (int x = 0; x < 10; );
@@ -128,38 +170,83 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			SDL_RenderFillRect(renderer, &rec);
 			SDL_RenderCopy(renderer, transplosion, &trans, &rec);
 		};
+		*/
 
 		{ // Grid test
-			int gridSize = 20;
-			int smallest = min(w * .8, h * .8);
+			// int gridSize = game.gridSize;
+			int smallest = min(w * .9, h * .9);
+
+			int slotSize = smallest / game.gridSize;
+			int correctSize = slotSize * game.gridSize;
+
 			SDL_Rect Place = { 
-				centerX-(smallest/2), centerY - (smallest / 2),
-				smallest, smallest
+				centerX - (correctSize / 2), centerY - (correctSize / 2),
+				correctSize, correctSize
 			};
 
-			int slotSize = Place.w / gridSize;
 
 			SDL_Rect Slot;
 			Slot.x = Place.x;
-			Slot.y = Place.y;
+			Slot.y = Place.x;
 			Slot.w = slotSize;
 			Slot.h = slotSize;
 
+			SDL_Rect spriteSlice = { 0, 0, spriteSize, spriteSize };
+
 			int a = 0;
-			for (int x = 0; x < gridSize; x++)
+			for (int x = 0; x < game.gridSize; x++)
 			{
-				a = !a;
-				for (int y = 0; y < gridSize; y++) {
+				for (int y = 0; y < game.gridSize; y++) {
+					int index = x + y * game.gridSize;
+					int display = game.displayGrid->array[index];
+					//SDL_Color color = SlotColors[swag];
+					//SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+
+					Slot.x = Place.x + Slot.w * x;
+					Slot.y = Place.y + Slot.h * y;
+
+					spriteSlice.x = spriteSize * display;
+
+					SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
+
+					//SDL_RenderFillRect(renderer, &Slot);
 					a = !a;
-					SDL_SetRenderDrawColor(renderer, a ? 255 : 0, a ? 0 : 255, 0, 255);
-
-					Slot.x = Place.x + slotSize * x;
-					Slot.y = Place.y + slotSize * y;
-
-					SDL_RenderFillRect(renderer, &Slot);
 				}
+				if (!(game.gridSize % 2))
+					a = !a;
 			}
-				
+
+			/*
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 50);
+			SDL_RenderFillRect(renderer, &Place);
+			*/
+			
+			if (SDL_PointInRect(&mousePosition, &Place) && clicked)
+			{
+				slotX = (mouseX - Place.x) / slotSize;
+				slotY = (mouseY - Place.y) / slotSize;
+				slotIndex = slotX + slotY * game.gridSize;
+
+				click.x = slotX;
+				click.y = slotY;
+				click.flag = flag;
+
+				if (handleClick(&game, &click))
+					completeGrid(&game);
+
+				/*
+				if (flag)
+					placeFlag(&game, slotX, slotY);
+				else
+				{
+					if (!moves)
+						placeBombs(&game, &click, 8);
+					digAt(&game, slotX, slotY);
+					moves++;
+				}
+				*/
+			}
 		};
 
 		/*
@@ -203,6 +290,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		dest.y += 10;
 		sprintf_s(buf, 100, "Frametime: %fms", frameTime * 1000);
 		renderText(buf, dest, renderer);
+		dest.y += 10;
+		sprintf_s(buf, 100, "Slot X: %d, Slot Y: %d, Slot index: %d", slotX, slotY, slotIndex);
+		renderText(buf, dest, renderer);
 
 		// sprintf(buf, "Current Perf: %f", framePerf);
 
@@ -211,11 +301,31 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		last = SDL_GetTicks();
 	}
 	SDL_DestroyTexture(transplosion);
+	SDL_DestroyTexture(sprites);
 	return 0;
 }
 
+// MAIN //
+
 int main(int argc, char* argv[])
 {
+	// Setup game
+
+	Array bombGrid;
+	game.bombGrid = &bombGrid;
+	Array displayGrid;
+	game.displayGrid = &displayGrid;
+
+	game.gridSize = 20;
+	game.arraySize = game.gridSize * game.gridSize;
+
+	initArraySize(game.displayGrid, game.arraySize);
+	initArraySize(game.bombGrid, game.arraySize);
+
+	initGrid(&game);
+
+	// Other
+
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
 	int status = EXIT_FAILURE;
@@ -223,25 +333,17 @@ int main(int argc, char* argv[])
 	SDL_SetMainReady();
 	if (initWindow(&window, &renderer) != 0)
 	{
-		fprintf(stderr, "Error initWindow : %s", SDL_GetError());
+		fprintf(stderr, "Error initWindow : %s\n", SDL_GetError());
 		goto Quit;
 	}
 
-	TTF_Init();
-	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 10);
-
-	SDL_SetWindowTitle(window, "Hello world!");
-	SDL_SetWindowResizable(window, SDL_TRUE);
-	setWindowColor(renderer, (SDL_Color){ 255, 255, 255, 255 });
-
-	//SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-
 	loop(renderer, window);
-
-	//SDL_RenderPresent(renderer);
-	//SDL_Delay(3000);
+	
 	SDL_DestroyWindow(window);
+
 	Quit:
+		free(displayGrid.array);
+		free(bombGrid.array);
 		if (renderer != NULL)
 			SDL_DestroyRenderer(renderer);
 		if (window != NULL)
