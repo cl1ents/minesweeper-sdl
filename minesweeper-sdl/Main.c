@@ -30,6 +30,18 @@ const SDL_Color SlotColors[] = {
 	{50, 0, 0, 255}
 };
 
+const SDL_Color GridColors[2][2] = {
+	{
+		{92, 138, 255, 255},
+		{100, 180, 255, 255}
+	},
+	{
+		{25, 71, 188, 255},
+		{24, 105, 179, 255}
+	}
+};
+
+
 TTF_Font* font;
 
 // FUNCTIONS //
@@ -94,7 +106,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	int moves = 0;
 
 	SDL_Texture* sprites = IMG_LoadTexture(renderer, "./res/sprites.png");
-	int spriteSize = 17;
+	int spriteSize = 32;
 
 	int w;
 	int h;
@@ -126,7 +138,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				running = 0;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
-				//printf("%d, %d", e.button.x, e.button.y);
 				clicked = 1;
 				flag = e.button.button == SDL_BUTTON_RIGHT;
 				break;
@@ -199,17 +210,17 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				for (int y = 0; y < game.gridSize; y++) {
 					int index = x + y * game.gridSize;
 					int display = game.displayGrid->array[index];
-					//SDL_Color color = SlotColors[swag];
-					//SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+					SDL_Color color = GridColors[display == 0 || display == 12][a];
+					SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 
 					Slot.x = Place.x + Slot.w * x;
 					Slot.y = Place.y + Slot.h * y;
 
 					spriteSlice.x = spriteSize * display;
 
+					SDL_RenderFillRect(renderer, &Slot);
 					SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
 
-					//SDL_RenderFillRect(renderer, &Slot);
 					a = !a;
 				}
 				if (!(game.gridSize % 2))
@@ -249,31 +260,12 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			}
 		};
 
-		/*
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_Point point[5];
-
-		
-		float offsety = sin(SDL_GetTicks() / 1000.0f) * 50;
-		float offsetx = cos(SDL_GetTicks() / 1000.0f) * 50;
-
-		point[0].x = 100 + offsetx;
-		point[0].y = 100 + offsety;
-		point[1].x = 200 + offsetx;
-		point[1].y = 100 + offsety;
-		point[2].x = 200 + offsetx;
-		point[2].y = 200 + offsety;
-		point[3].x = 100 + offsetx;
-		point[3].y = 200 + offsety;
-		point[4].x = 100 + offsetx;
-		point[4].y = 100 + offsety;
-		SDL_RenderDrawLines(renderer, point, 5);
-		*/
 
 		float dt = (SDL_GetTicks() - last) / 1000.0f;
 		if (dt < 6)
 			SDL_Delay(6);
 
+		// Show stats
 		Uint32 endTicks = SDL_GetTicks();
 		Uint64 endPerf = SDL_GetPerformanceCounter();
 		Uint64 framePerf = endPerf - startPerf;
