@@ -7,9 +7,11 @@
 #include <time.h>
 #include <string.h>
 
+#include "Resources.h"
 #include "GameGrid.h"
 #include "Input.h"
 #include "Array.h"
+#include "MouseState.h"
 
 // CONSTS //
 
@@ -30,19 +32,6 @@ const SDL_Color SlotColors[] = {
 	{50, 0, 0, 255}
 };
 
-const SDL_Color GridColors[2][2] = {
-	{
-		{92, 138, 255, 255},
-		{100, 180, 255, 255}
-	},
-	{
-		{25, 71, 188, 255},
-		{24, 105, 179, 255}
-	}
-};
-
-
-TTF_Font* font;
 
 // FUNCTIONS //
 
@@ -105,11 +94,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	int frameCount = 18;
 	int frameDuration = 70;
 	int moves = 0;
-
-	SDL_Texture* cursor = IMG_LoadTexture(renderer, "./res/cursor.png");
-	SDL_Texture* sprites = IMG_LoadTexture(renderer, "./res/sprites.png");
-	int spriteSize = 32;
-	SDL_QueryTexture(sprites, NULL, NULL, NULL, &spriteSize);
 
 	SDL_Rect cursorRect;
 	SDL_Point mousePosition;
@@ -189,56 +173,23 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		};
 		*/
 
-		{ // Grid test
-			// int gridSize = game.gridSize;
+		{
 			int smallest = min(w * .9, h * .9);
 
 			int slotSize = smallest / game.gridSize;
 			int correctSize = slotSize * game.gridSize;
 
-			SDL_Rect Place = { 
+			SDL_Rect Place = {
 				centerX - (correctSize / 2), centerY - (correctSize / 2),
 				correctSize, correctSize
 			};
 
+			MouseState State = {
+				mousePosition.x, mousePosition.y, 0
+			};
 
-			SDL_Rect Slot;
-			Slot.x = Place.x;
-			Slot.y = Place.x;
-			Slot.w = slotSize;
-			Slot.h = slotSize;
+			renderGrid(renderer, &Place, &game, &State);
 
-			SDL_Rect spriteSlice = { 0, 0, spriteSize, spriteSize };
-
-			int a = 0;
-			for (int x = 0; x < game.gridSize; x++)
-			{
-				for (int y = 0; y < game.gridSize; y++) {
-					int index = x + y * game.gridSize;
-					int display = game.displayGrid->array[index];
-					SDL_Color color = GridColors[display == 0 || display == 12][a];
-					SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-					Slot.x = Place.x + Slot.w * x;
-					Slot.y = Place.y + Slot.h * y;
-
-					spriteSlice.x = spriteSize * display;
-
-					SDL_RenderFillRect(renderer, &Slot);
-					SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
-
-					a = !a;
-				}
-				if (!(game.gridSize % 2))
-					a = !a;
-			}
-
-			/*
-			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 50);
-			SDL_RenderFillRect(renderer, &Place);
-			*/
-			
 			if (SDL_PointInRect(&mousePosition, &Place) && clicked)
 			{
 				slotX = (mousePosition.x - Place.x) / slotSize;
@@ -251,20 +202,8 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 				if (handleClick(&game, &click))
 					completeGrid(&game);
-
-				/*
-				if (flag)
-					placeFlag(&game, slotX, slotY);
-				else
-				{
-					if (!moves)
-						placeBombs(&game, &click, 8);
-					digAt(&game, slotX, slotY);
-					moves++;
-				}
-				*/
 			}
-		};
+		}
 
 
 		float dt = (SDL_GetTicks() - last) / 1000.0f;
@@ -297,7 +236,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		last = SDL_GetTicks();
 	}
 	SDL_DestroyTexture(transplosion);
-	SDL_DestroyTexture(sprites);
 	return 0;
 }
 
@@ -305,6 +243,8 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 int main(int argc, char* argv[])
 {
+	// Initialize resources
+
 	// Setup game
 
 	Array bombGrid;
@@ -334,6 +274,7 @@ int main(int argc, char* argv[])
 		goto Quit;
 	}
 
+	initResources(renderer);
 	loop(renderer, window);
 	
 	SDL_DestroyWindow(window);

@@ -138,12 +138,17 @@ xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
   <ItemGroup>
     <ClCompile Include="Array.c" />
     <ClCompile Include="GameGrid.c" />
+    <ClCompile Include="GridRenderer.c" />
     <ClCompile Include="Main.c" />
+    <ClCompile Include="Resources.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="GameGrid.h" />
+    <ClInclude Include="GridRenderer.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="MouseState.h" />
+    <ClInclude Include="Resources.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
