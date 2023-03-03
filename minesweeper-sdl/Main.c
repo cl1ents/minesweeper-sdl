@@ -88,6 +88,7 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 
 	SDL_SetWindowTitle(*window, "Hello world!");
 	SDL_SetWindowResizable(*window, SDL_TRUE);
+	SDL_ShowCursor(0);
 
 	return 0;
 }
@@ -105,8 +106,14 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	int frameDuration = 70;
 	int moves = 0;
 
+	SDL_Texture* cursor = IMG_LoadTexture(renderer, "./res/cursor.png");
 	SDL_Texture* sprites = IMG_LoadTexture(renderer, "./res/sprites.png");
 	int spriteSize = 32;
+	SDL_QueryTexture(sprites, NULL, NULL, NULL, &spriteSize);
+
+	SDL_Rect cursorRect;
+	SDL_Point mousePosition;
+	SDL_QueryTexture(cursor, NULL, NULL, &cursorRect.w, &cursorRect.h);
 
 	int w;
 	int h;
@@ -151,10 +158,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			};
 		}
 
-		int mouseX;
-		int mouseY;
-		SDL_GetMouseState(&mouseX, &mouseY);
-		SDL_Point mousePosition = { mouseX, mouseY };
+		SDL_GetMouseState(&cursorRect.x, &cursorRect.y);
+		mousePosition.x = cursorRect.x;
+		mousePosition.y = cursorRect.y;
 
 		float centerX = w / 2.0;
 		float centerY = h / 2.0;
@@ -170,7 +176,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 			int frame = (SDL_GetTicks() % (frameDuration * frameCount)) / frameDuration;
 
-			SDL_Rect rec = { mouseX - rw / 2, mouseY - rh/2, rw, rh };
+			SDL_Rect rec = { mousePosition.x - rw / 2, mousePosition.y - rh/2, rw, rh };
 			SDL_Rect trans = { 0, frame * 256, 256, 256 };
 
 			//for (int x = 0; x < 10; );
@@ -235,8 +241,8 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			
 			if (SDL_PointInRect(&mousePosition, &Place) && clicked)
 			{
-				slotX = (mouseX - Place.x) / slotSize;
-				slotY = (mouseY - Place.y) / slotSize;
+				slotX = (mousePosition.x - Place.x) / slotSize;
+				slotY = (mousePosition.y - Place.y) / slotSize;
 				slotIndex = slotX + slotY * game.gridSize;
 
 				click.x = slotX;
@@ -286,9 +292,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		sprintf_s(buf, 100, "Slot X: %d, Slot Y: %d, Slot index: %d", slotX, slotY, slotIndex);
 		renderText(buf, dest, renderer);
 
-		// sprintf(buf, "Current Perf: %f", framePerf);
-
-		
+		SDL_RenderCopy(renderer, cursor, NULL, &cursorRect);
 		SDL_RenderPresent(renderer);
 		last = SDL_GetTicks();
 	}
@@ -309,6 +313,7 @@ int main(int argc, char* argv[])
 	game.displayGrid = &displayGrid;
 
 	game.gridSize = 20;
+	game.difficulty = 8;
 	game.arraySize = game.gridSize * game.gridSize;
 
 	initArraySize(game.displayGrid, game.arraySize);

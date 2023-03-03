@@ -244,7 +244,7 @@ int handleClick(GameGrid* grid, Input* input) {
         if (grid->displayGrid->array[input->x + input->y * grid->gridSize] == 0) 
         {
             if (!grid->moveCount)
-                placeBombs(grid, input, 8);
+                placeBombs(grid, input, grid->difficulty);
             grid->moveCount++;
             return digAt(grid, input->x, input->y);
         }
