@@ -22,9 +22,57 @@ const SDL_Color GridColors[2][2] = {
 	}
 };
 
+SDL_Texture* gridTex;
+
 SDL_Rect Slot;
 SDL_Rect spriteSlice;
-void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game, MouseState mouse) { // Grid test
+
+void updateGrid(SDL_Renderer* renderer, GameGrid* game)
+{
+	if (gridTex)
+		SDL_DestroyTexture(gridTex);
+
+	gridTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, sprites.w * game->gridSize, sprites.h * game->gridSize);
+
+	Slot.x = 0;
+	Slot.y = 0;
+	Slot.w = sprites.w;
+	Slot.h = sprites.h;
+
+	SDL_SetRenderTarget(renderer, gridTex);
+
+	int a = 0;
+	for (int x = 0; x < game->gridSize; x++)
+	{
+		for (int y = 0; y < game->gridSize; y++) {
+			int index = x + y * game->gridSize;
+			int display = game->displayGrid->array[index];
+			SDL_Color color = GridColors[display == 0 || display == 12][a];
+			SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+
+			Slot.x = Slot.w * x;
+			Slot.y = Slot.h * y;
+
+			//spriteSlice.x = spriteSize * display;
+
+			SDL_RenderFillRect(renderer, &Slot);
+			RenderSprite(renderer, &Slot, &sprites, display);
+			//SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
+
+			a = !a;
+		}
+		if (!(game->gridSize % 2))
+			a = !a;
+	}
+
+	SDL_SetRenderTarget(renderer, NULL);
+}
+
+void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game, MouseState mouse) 
+{ // Grid test
+	SDL_RenderCopy(renderer, gridTex, NULL, Place);
+
+	/*
 	// int gridSize = game.gridSize;
 	int slotSize = Place->h / game->gridSize;
 
@@ -59,6 +107,7 @@ void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game, MouseSt
 		if (!(game->gridSize % 2))
 			a = !a;
 	}
+	*/
 
 	/*
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);

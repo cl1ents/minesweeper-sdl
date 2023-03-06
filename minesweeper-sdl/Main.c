@@ -9,6 +9,7 @@
 
 #include "Resources.h"
 #include "GameGrid.h"
+#include "GridRenderer.h"
 #include "Input.h"
 #include "Array.h"
 #include "MouseState.h"
@@ -16,22 +17,6 @@
 // CONSTS //
 
 GameGrid game;
-const SDL_Color SlotColors[] = {
-	{128, 128, 128, 255},
-	{192, 192, 192, 255},
-	{0, 0, 255, 255},
-	{0, 255, 0, 255},
-	{255, 0, 0, 255},
-	{0, 0, 128, 255},
-	{0, 129, 127, 255},
-	{0, 0, 0, 255},
-	{50, 50, 50, 255},
-	{255, 255, 255, 255},
-	{255, 255, 255, 255},
-	{0, 0, 0, 255},
-	{50, 0, 0, 255}
-};
-
 
 // FUNCTIONS //
 
@@ -110,6 +95,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	int slotY = -1;
 	int slotIndex = -1;
 
+	updateGrid(renderer, &game);
 	while (running) {
 		totalFrames++;
 		Uint32 startTicks = SDL_GetTicks();
@@ -138,7 +124,10 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				break;
 			case SDL_KEYDOWN:
 				if (e.key.keysym.sym == SDLK_RETURN)
+				{
 					resetGrid(&game);
+					updateGrid(renderer, &game);
+				}
 				break;
 			};
 		}
@@ -166,7 +155,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				mousePosition.x, mousePosition.y, 0
 			};
 
-			renderGrid(renderer, &Place, &game, &State);
 
 			if (SDL_PointInRect(&mousePosition, &Place) && clicked)
 			{
@@ -180,7 +168,11 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 				if (handleClick(&game, &click))
 					completeGrid(&game);
+
+				updateGrid(renderer, &game);
 			}
+
+			renderGrid(renderer, &Place, &game, &State);
 		}
 
 
@@ -201,6 +193,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Average FPS: %f", 1000.0f / ((float)totalFrameTicks / totalFrames));
+		renderText(buf, dest, renderer);
+		dest.y += 10;
+		sprintf_s(buf, 100, "Perfs: %f", endPerf);
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Frametime: %fms", frameTime * 1000);
