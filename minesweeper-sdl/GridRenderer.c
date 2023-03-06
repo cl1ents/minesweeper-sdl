@@ -9,6 +9,7 @@
 #include "Array.h"
 #include "GameGrid.h"
 #include "MouseState.h"
+#include "Sprite.h"
 
 const SDL_Color GridColors[2][2] = {
 	{
@@ -21,21 +22,19 @@ const SDL_Color GridColors[2][2] = {
 	}
 };
 
-void HandleEvent(SDL_Event event) {
-
-}
-
+SDL_Rect Slot;
+SDL_Rect spriteSlice;
 void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game, MouseState mouse) { // Grid test
 	// int gridSize = game.gridSize;
 	int slotSize = Place->h / game->gridSize;
 
-	SDL_Rect Slot;
 	Slot.x = Place->x;
 	Slot.y = Place->x;
 	Slot.w = slotSize;
 	Slot.h = slotSize;
 
-	SDL_Rect spriteSlice = { 0, 0, spriteSize, spriteSize };
+	//spriteSlice.w = spriteSize;
+	//spriteSlice.h = spriteSize;
 
 	int a = 0;
 	for (int x = 0; x < game->gridSize; x++)
@@ -49,10 +48,11 @@ void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game, MouseSt
 			Slot.x = Place->x + Slot.w * x;
 			Slot.y = Place->y + Slot.h * y;
 
-			spriteSlice.x = spriteSize * display;
+			//spriteSlice.x = spriteSize * display;
 
 			SDL_RenderFillRect(renderer, &Slot);
-			SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
+			RenderSprite(renderer, &Slot, &sprites, display);
+			//SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
 
 			a = !a;
 		}

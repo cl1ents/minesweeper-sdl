@@ -59,7 +59,10 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 		return -1;
 	}
 
-	SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_SHOWN, window, renderer);
+	*window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+	*renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+	//SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_SHOWN, window, renderer);
+	
 	if (window == NULL || *window == NULL)
 	{
 		fprintf(stderr, "Error SDL_CreateWindow : %s\n", SDL_GetError());
@@ -73,9 +76,7 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 	}
 
 	TTF_Init();
-	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 10);
 
-	SDL_SetWindowTitle(*window, "Hello world!");
 	SDL_SetWindowResizable(*window, SDL_TRUE);
 	SDL_ShowCursor(0);
 
@@ -150,29 +151,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		float centerY = h / 2.0;
 		SDL_GetWindowSize(window, &w, &h);
 
-		/*
-		{ // Animation Test
-
-			int smallest = min(w * .2, h * .2);
-
-			int rw = smallest;
-			int rh = smallest;
-
-			int frame = (SDL_GetTicks() % (frameDuration * frameCount)) / frameDuration;
-
-			SDL_Rect rec = { mousePosition.x - rw / 2, mousePosition.y - rh/2, rw, rh };
-			SDL_Rect trans = { 0, frame * 256, 256, 256 };
-
-			//for (int x = 0; x < 10; );
-
-			//SDL_Surface* screenSurface = SDL_GetWindowSurface(window);
-
-			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-			SDL_RenderFillRect(renderer, &rec);
-			SDL_RenderCopy(renderer, transplosion, &trans, &rec);
-		};
-		*/
-
 		{
 			int smallest = min(w * .9, h * .9);
 
@@ -207,8 +185,8 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 
 		float dt = (SDL_GetTicks() - last) / 1000.0f;
-		if (dt < 6)
-			SDL_Delay(6);
+		if (dt < 4)
+			SDL_Delay(4);
 
 		// Show stats
 		Uint32 endTicks = SDL_GetTicks();
@@ -232,6 +210,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		renderText(buf, dest, renderer);
 
 		SDL_RenderCopy(renderer, cursor, NULL, &cursorRect);
+
+		//RenderSprite(renderer, &cursorRect, &seashell, (SDL_GetTicks() / 30) % seashell.count);
+
 		SDL_RenderPresent(renderer);
 		last = SDL_GetTicks();
 	}
@@ -276,7 +257,7 @@ int main(int argc, char* argv[])
 
 	initResources(renderer);
 	loop(renderer, window);
-	
+	releaseResources();
 	SDL_DestroyWindow(window);
 
 	Quit:
