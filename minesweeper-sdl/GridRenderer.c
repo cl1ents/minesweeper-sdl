@@ -1,9 +1,11 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <windows.h>
 
 #include "Resources.h"
 #include "Array.h"
@@ -26,6 +28,39 @@ SDL_Texture* gridTex;
 
 SDL_Rect Slot;
 SDL_Rect spriteSlice;
+
+int ArrayInitialized = 0;
+Array oldDisplayGrid;
+
+void initGridRenderer(GameGrid* game)
+{
+	if (!ArrayInitialized)
+	{
+		initArray(&oldDisplayGrid);
+		ArrayInitialized = !ArrayInitialized;
+	}
+
+	for (int i = 0; i < oldDisplayGrid.length; i++)
+	{
+		removeFrom(&oldDisplayGrid, 0);
+	}
+	
+	for (int i = 0; i < game->arraySize; i++)
+		insertInto(&oldDisplayGrid, game->displayGrid->array[i]);
+}
+
+int onGridClick(GameGrid* game)
+{
+	int count = 0;
+	for (int i = 0; i < game->arraySize; i++)
+	{
+		if (game->displayGrid->array[i] != oldDisplayGrid.array[i]) {
+			oldDisplayGrid.array[i] = game->displayGrid->array[i];
+			count++;
+		};
+	}
+	return count;
+}
 
 void updateGrid(SDL_Renderer* renderer, GameGrid* game)
 {
@@ -68,7 +103,7 @@ void updateGrid(SDL_Renderer* renderer, GameGrid* game)
 	SDL_SetRenderTarget(renderer, NULL);
 }
 
-void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game, MouseState mouse) 
+void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game) 
 { // Grid test
 	SDL_RenderCopy(renderer, gridTex, NULL, Place);
 

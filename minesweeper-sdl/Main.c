@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -13,6 +14,7 @@
 #include "Input.h"
 #include "Array.h"
 #include "MouseState.h"
+#include "SceneRenderer.h"
 
 // CONSTS //
 
@@ -60,6 +62,18 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 		return -1;
 	}
 
+	//Initialize SDL_mixer
+	if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512) == -1)
+	{
+		return -1;
+	}
+
+	//Initialize SDL_mixer
+	if (Mix_AllocateChannels(256) == -1)
+	{
+		return -1;
+	}
+
 	TTF_Init();
 
 	SDL_SetWindowResizable(*window, SDL_TRUE);
@@ -76,7 +90,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	Uint32 totalFrames = 0;
 
 	Uint32 last = SDL_GetTicks();
-	SDL_Texture* transplosion = IMG_LoadTexture(renderer, "./res/transplosion.png");
+	SDL_Texture* transplosion = IMG_LoadTexture(renderer, "./res/images/transplosion.png");
 	int frameCount = 18;
 	int frameDuration = 70;
 	int moves = 0;
@@ -95,6 +109,9 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	int slotY = -1;
 	int slotIndex = -1;
 
+	int fullscreen = 0;
+	int toPlay = 0;
+
 	updateGrid(renderer, &game);
 	while (running) {
 		totalFrames++;
@@ -103,8 +120,10 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 		SDL_Event e;
 
+		
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderClear(renderer);
+		
 
 		int clicked = 0;
 		int flag = 0;
@@ -119,14 +138,34 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				clicked = 1;
 				flag = e.button.button == SDL_BUTTON_RIGHT;
 				break;
-			case SDL_WINDOWEVENT_RESIZED:
-				SDL_GetWindowSize(window, &w, &h);
+
+			case SDL_WINDOWEVENT:
+				switch (e.window.event) {
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
+				case SDL_WINDOWEVENT_RESIZED:
+					SDL_GetWindowSize(window, &w, &h);
+					break;
+				}
 				break;
 			case SDL_KEYDOWN:
-				if (e.key.keysym.sym == SDLK_RETURN)
+				switch (e.key.keysym.sym)
 				{
+				case SDLK_RETURN:
 					resetGrid(&game);
+					initGridRenderer(&game);
 					updateGrid(renderer, &game);
+					break;
+				case SDLK_F11:
+					fullscreen = !fullscreen;
+					SDL_SetWindowFullscreen(window, fullscreen*4097);
+					updateGrid(renderer, &game);
+					break;
+				case SDLK_x:
+					Mix_PlayChannel(-1, hitmarker, 0);
+					break;
+				case SDLK_w:
+					Mix_PlayChannel(-1, hitmarker, 0);
+					break;
 				}
 				break;
 			};
@@ -138,10 +177,11 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 		float centerX = w / 2.0;
 		float centerY = h / 2.0;
-		SDL_GetWindowSize(window, &w, &h);
+
+		RenderBackground(renderer, w, h);
 
 		{
-			int smallest = min(w * .9, h * .9);
+			int smallest = min(w * .8, h * .8);
 
 			int slotSize = smallest / game.gridSize;
 			int correctSize = slotSize * game.gridSize;
@@ -169,12 +209,20 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				if (handleClick(&game, &click))
 					completeGrid(&game);
 
+				toPlay += onGridClick(&game);
 				updateGrid(renderer, &game);
 			}
 
-			renderGrid(renderer, &Place, &game, &State);
+			renderGrid(renderer, &Place, &game);
 		}
 
+		if (toPlay > 0 && (rand() % 3) == 0) {
+			Mix_PlayChannel(-1, bubbles[rand() % 7], 0);
+			toPlay -= rand() % 15;
+			toPlay = max(toPlay, 0);
+		}
+
+		RenderForeground(renderer, w, h);
 
 		float dt = (SDL_GetTicks() - last) / 1000.0f;
 		if (dt < 4)
@@ -193,9 +241,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Average FPS: %f", 1000.0f / ((float)totalFrameTicks / totalFrames));
-		renderText(buf, dest, renderer);
-		dest.y += 10;
-		sprintf_s(buf, 100, "Perfs: %f", endPerf);
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Frametime: %fms", frameTime * 1000);
@@ -236,6 +281,7 @@ int main(int argc, char* argv[])
 	initArraySize(game.bombGrid, game.arraySize);
 
 	initGrid(&game);
+	initGridRenderer(&game);
 
 	// Other
 
@@ -262,9 +308,9 @@ int main(int argc, char* argv[])
 			SDL_DestroyRenderer(renderer);
 		if (window != NULL)
 			SDL_DestroyWindow(window);
+		Mix_Quit();
 		SDL_Quit();
 		return status;
-
 
 	return EXIT_SUCCESS;
 }
