@@ -9,9 +9,12 @@
 #include <time.h>
 
 #include "Sprite.h"
+#include "Resources.h"
 
 Sprite sprites;
 Sprite seashell;
+
+Sprite particles_sprites[2];
 
 SDL_Texture* cursor;
 SDL_Texture* ui_elements[2];
@@ -38,6 +41,18 @@ void initResources(SDL_Renderer *renderer) {
 	seashell.w = 64;
 	seashell.h = 64;
 	initSprite(&seashell);
+
+	// Bubbles
+	BUBBLES_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/bubbles.png");
+	BUBBLES_SPRITE.w = 9;
+	BUBBLES_SPRITE.h = 9;
+	initSprite(&BUBBLES_SPRITE);
+
+	// Explosion
+	EXPLOSION_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/explosion.png");
+	EXPLOSION_SPRITE.w = 32;
+	EXPLOSION_SPRITE.h = 32;
+	initSprite(&EXPLOSION_SPRITE);
 
 	hitmarker = Mix_LoadWAV("./res/sounds/hitmarker.mp3");
 	char str[50];

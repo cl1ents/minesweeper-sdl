@@ -8,6 +8,7 @@
 #include <windows.h>
 
 #include "Resources.h"
+#include "Particles.h"
 #include "Array.h"
 #include "GameGrid.h"
 #include "MouseState.h"
@@ -32,6 +33,8 @@ SDL_Rect spriteSlice;
 int ArrayInitialized = 0;
 Array oldDisplayGrid;
 
+SDL_Rect PlacedWhere;
+
 void initGridRenderer(SDL_Renderer* renderer, GameGrid* game)
 {
 	if (!ArrayInitialized)
@@ -54,13 +57,26 @@ void initGridRenderer(SDL_Renderer* renderer, GameGrid* game)
 int onGridClick(GameGrid* game)
 {
 	int count = 0;
-	for (int i = 0; i < game->arraySize; i++)
+	float slotSize = PlacedWhere.h / game->gridSize;
+
+	for (int x = 0; x < game->gridSize; x++)
 	{
-		if (game->displayGrid->array[i] != oldDisplayGrid.array[i]) {
-			if (game->displayGrid->array[i] != 12 && oldDisplayGrid.array[i] != 12)
-				count++;
-			oldDisplayGrid.array[i] = game->displayGrid->array[i];
-		};
+		for (int y = 0; y < game->gridSize; y++) {
+			int i = x + y * game->gridSize;
+			if (game->displayGrid->array[i] != oldDisplayGrid.array[i]) {
+				if (game->displayGrid->array[i] != 12 && oldDisplayGrid.array[i] != 12)
+				{
+					count++;
+
+					if (rand()%2)
+					{
+						SDL_Rect bubbleRect = { PlacedWhere.x + slotSize * (x + (rand()%500)/1000.0), PlacedWhere.y + slotSize * (y + (rand() % 500) / 1000.0), slotSize / 3, slotSize / 3 };
+						createParticle(&bubbleRect, 250 + rand() % 750, &BUBBLES_SPRITE, bubble);
+					}
+				}
+				oldDisplayGrid.array[i] = game->displayGrid->array[i];
+			};
+		}
 	}
 	return count;
 }
@@ -103,6 +119,11 @@ void updateGrid(SDL_Renderer* renderer, GameGrid* game)
 
 void renderGrid(SDL_Renderer* renderer, SDL_Rect* Place, GameGrid* game) 
 { // Grid test
+	PlacedWhere.x = Place->x;
+	PlacedWhere.y = Place->y;
+	PlacedWhere.w = Place->w;
+	PlacedWhere.h = Place->h;
+
 	SDL_RenderCopy(renderer, gridTex, NULL, Place);
 
 	/*

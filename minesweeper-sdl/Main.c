@@ -50,14 +50,6 @@ void renderDebugText(char* text, SDL_Rect dest, SDL_Renderer *renderer) {
 	SDL_FreeSurface(surf);
 }
 
-int bubble(Particle* p, float dt)
-{
-	// p->y += dt;
-	p->y += (float)(p->initial->y - p->y) * (float)(dt + (rand() % 10)) / 150.0;
-	p->x += (float)(p->initial->x - p->x) * (float)(dt + (rand() % 10)) / 150.0;
-	return 1;
-}
-
 void renderFontText(TTF_Font *font, char* text, SDL_Color fg, SDL_Rect dest, SDL_Renderer* renderer) {
 	SDL_Surface* surf = TTF_RenderText_Blended(font, text, fg);
 
@@ -244,8 +236,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 				toPlay += onGridClick(&game);
 				updateGrid(renderer, &game);
-
-				createParticle(&cursorRect, 2000, &seashell, bubble);
 			}
 
 			renderGrid(renderer, &Place, &game);
@@ -272,7 +262,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		}
 
 		if (toPlay > 0 && (rand() % 3) == 0) {
-			Mix_PlayChannel(-1, bubbles[rand() % 7], 0);
+			//Mix_PlayChannel(-1, bubbles[rand() % 7], 0);
 			toPlay -= rand() % 15;
 			toPlay = max(toPlay, 0);
 		}
@@ -331,7 +321,7 @@ int main(int argc, char* argv[])
 	game.displayGrid = &displayGrid;
 
 	game.gridSize = 20;
-	game.difficulty = 100;
+	game.difficulty = 8;
 	game.arraySize = game.gridSize * game.gridSize;
 
 	initArraySize(game.displayGrid, game.arraySize);

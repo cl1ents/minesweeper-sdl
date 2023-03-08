@@ -9,6 +9,10 @@ typedef struct Mix_Chunk Mix_Chunk;
 Sprite sprites;
 Sprite seashell;
 
+Sprite particles_sprites[2];
+#define BUBBLES_SPRITE particles_sprites[0]
+#define EXPLOSION_SPRITE particles_sprites[1]
+
 SDL_Texture* cursor;
 SDL_Texture* ui_elements[2];
 SDL_Texture* background_images[2];
