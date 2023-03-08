@@ -17,3 +17,4 @@ Mix_Chunk* hitmarker;
 Mix_Chunk* bubbles[6];
 
 TTF_Font* font;
+TTF_Font* uiFont;

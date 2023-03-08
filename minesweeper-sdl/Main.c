@@ -15,18 +15,43 @@
 #include "Array.h"
 #include "MouseState.h"
 #include "SceneRenderer.h"
+#include "Particles.h"
 
 // CONSTS //
 
 GameGrid game;
+SDL_Color white = { 255, 255, 255 };
+SDL_Color shadow = { 0, 0, 0, 150 };
 
 // FUNCTIONS //
 
 void renderText(char* text, SDL_Rect dest, SDL_Renderer *renderer) {
+	return;
 	SDL_Color fg = { 0, 0, 0 };
-	SDL_Surface* surf = TTF_RenderText_Solid(font, text, fg);
+	SDL_Surface* surf = TTF_RenderText_Blended(font, text, fg);
 
 	// printf("Error renderText : %s\n", TTF_GetError());
+
+	dest.w = surf->w;
+	dest.h = surf->h;
+
+	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+
+	SDL_RenderCopy(renderer, tex, NULL, &dest);
+	SDL_DestroyTexture(tex);
+	SDL_FreeSurface(surf);
+}
+
+int bubble(Particle* p, float dt)
+{
+	// p->y += dt;
+	p->y += (float)(p->initial->y - p->y) * (float)(dt + (rand() % 10)) / 150.0;
+	p->x += (float)(p->initial->x - p->x) * (float)(dt + (rand() % 10)) / 150.0;
+	return 1;
+}
+
+void renderFontText(TTF_Font *font, char* text, SDL_Color fg, SDL_Rect dest, SDL_Renderer* renderer) {
+	SDL_Surface* surf = TTF_RenderText_Blended(font, text, fg);
 
 	dest.w = surf->w;
 	dest.h = surf->h;
@@ -152,7 +177,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				{
 				case SDLK_RETURN:
 					resetGrid(&game);
-					initGridRenderer(&game);
+					initGridRenderer(renderer, &game);
 					updateGrid(renderer, &game);
 					break;
 				case SDLK_F11:
@@ -211,9 +236,31 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 				toPlay += onGridClick(&game);
 				updateGrid(renderer, &game);
+
+				createParticle(&cursorRect, 2000, &seashell, bubble);
 			}
 
 			renderGrid(renderer, &Place, &game);
+
+			Place.h = slotSize;
+			Place.w = slotSize;
+			Place.y -= slotSize;
+
+			RenderSprite(renderer, &Place, &sprites, 12);
+
+			Place.y += slotSize;
+			Place.x += slotSize + 5;
+
+			char buf[100];
+			sprintf_s(buf, 100, "Flags left: %d", game.bombCount-game.flagCount);
+
+			Place.y -= 23;
+			Place.x += 2;
+			renderFontText(uiFont, buf, shadow, Place, renderer);
+
+			Place.y -= 2;
+			Place.x -= 2;
+			renderFontText(uiFont, buf, white, Place, renderer);
 		}
 
 		if (toPlay > 0 && (rand() % 3) == 0) {
@@ -224,26 +271,28 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 		RenderForeground(renderer, w, h);
 
-		float dt = (SDL_GetTicks() - last) / 1000.0f;
+		float dt = (SDL_GetTicks() - last);
 		if (dt < 4)
 			SDL_Delay(4);
+
 
 		// Show stats
 		Uint32 endTicks = SDL_GetTicks();
 		Uint64 endPerf = SDL_GetPerformanceCounter();
 		Uint64 framePerf = endPerf - startPerf;
-		float frameTime = (endTicks - startTicks) / 1000.0f;
+		dt = (endTicks - startTicks);
 		totalFrameTicks += endTicks - startTicks;
+		particleStep(renderer, dt);
 
 		SDL_Rect dest = { 10, 10, 0, 0 };
 		char buf[100];
-		sprintf_s(buf, 100, "Current FPS: %f", 1.0f / frameTime);
+		sprintf_s(buf, 100, "Current FPS: %f", 1.0f / dt);
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Average FPS: %f", 1000.0f / ((float)totalFrameTicks / totalFrames));
 		renderText(buf, dest, renderer);
 		dest.y += 10;
-		sprintf_s(buf, 100, "Frametime: %fms", frameTime * 1000);
+		sprintf_s(buf, 100, "Frametime: %fms", dt);
 		renderText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Slot X: %d, Slot Y: %d, Slot index: %d", slotX, slotY, slotIndex);
@@ -274,14 +323,13 @@ int main(int argc, char* argv[])
 	game.displayGrid = &displayGrid;
 
 	game.gridSize = 20;
-	game.difficulty = 8;
+	game.difficulty = 100;
 	game.arraySize = game.gridSize * game.gridSize;
 
 	initArraySize(game.displayGrid, game.arraySize);
 	initArraySize(game.bombGrid, game.arraySize);
 
 	initGrid(&game);
-	initGridRenderer(&game);
 
 	// Other
 
@@ -297,6 +345,9 @@ int main(int argc, char* argv[])
 	}
 
 	initResources(renderer);
+	initGridRenderer(renderer, &game);
+	initSceneRenderer(renderer);
+
 	loop(renderer, window);
 	releaseResources();
 	SDL_DestroyWindow(window);

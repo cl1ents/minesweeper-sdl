@@ -137,6 +137,7 @@ xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Array.c" />
+    <ClCompile Include="Particles.c" />
     <ClCompile Include="SceneRenderer.c" />
     <ClCompile Include="GameGrid.c" />
     <ClCompile Include="GridRenderer.c" />
@@ -153,6 +154,7 @@ xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
     <ClInclude Include="Resources.h" />
     <ClInclude Include="SceneRenderer.h" />
     <ClInclude Include="Sprite.h" />
+    <ClInclude Include="Particles.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,6 +11,8 @@ typedef struct GameGrid {
 	int arraySize;
 	int moveCount;
 	int difficulty;
+	int flagCount;
+	int bombCount;
 } GameGrid;
 
 void initGrid(GameGrid* grid);

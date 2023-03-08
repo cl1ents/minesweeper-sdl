@@ -32,7 +32,7 @@ SDL_Rect spriteSlice;
 int ArrayInitialized = 0;
 Array oldDisplayGrid;
 
-void initGridRenderer(GameGrid* game)
+void initGridRenderer(SDL_Renderer* renderer, GameGrid* game)
 {
 	if (!ArrayInitialized)
 	{
@@ -47,6 +47,8 @@ void initGridRenderer(GameGrid* game)
 	
 	for (int i = 0; i < game->arraySize; i++)
 		insertInto(&oldDisplayGrid, game->displayGrid->array[i]);
+
+	gridTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, sprites.w * game->gridSize, sprites.h * game->gridSize);
 }
 
 int onGridClick(GameGrid* game)
@@ -55,8 +57,9 @@ int onGridClick(GameGrid* game)
 	for (int i = 0; i < game->arraySize; i++)
 	{
 		if (game->displayGrid->array[i] != oldDisplayGrid.array[i]) {
+			if (game->displayGrid->array[i] != 12 && oldDisplayGrid.array[i] != 12)
+				count++;
 			oldDisplayGrid.array[i] = game->displayGrid->array[i];
-			count++;
 		};
 	}
 	return count;
@@ -64,11 +67,6 @@ int onGridClick(GameGrid* game)
 
 void updateGrid(SDL_Renderer* renderer, GameGrid* game)
 {
-	if (gridTex)
-		SDL_DestroyTexture(gridTex);
-
-	gridTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, sprites.w * game->gridSize, sprites.h * game->gridSize);
-
 	Slot.x = 0;
 	Slot.y = 0;
 	Slot.w = sprites.w;

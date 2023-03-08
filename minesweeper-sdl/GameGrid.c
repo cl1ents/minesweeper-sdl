@@ -36,6 +36,9 @@ int countNeighbours(GameGrid* grid, int x, int y);
 void initGrid(GameGrid* grid)
 {
     grid->moveCount = 0;
+
+    grid->bombCount = grid->arraySize / grid->difficulty;
+    grid->flagCount = 0;
     // static Array bombGrid = newArraySize(grid->arraySize);
     // grid->bombGrid;
     for (int i = 0; i < grid->arraySize; i++)
@@ -56,6 +59,9 @@ void initGrid(GameGrid* grid)
 void resetGrid(GameGrid* grid)
 {
     grid->moveCount = 0;
+
+    grid->bombCount = grid->arraySize / grid->difficulty;
+    grid->flagCount = 0;
     // static Array bombGrid = newArraySize(grid->arraySize);
     // grid->bombGrid;
     for (int i = 0; i < grid->arraySize; i++)
@@ -67,16 +73,6 @@ void resetGrid(GameGrid* grid)
     {
         grid->displayGrid->array[i] = 0;
     }
-}
-
-/// <summary>
-/// absolute
-/// </summary>
-/// <param name="i"></param>
-/// <returns>absolute i</returns>
-int abs(int i)
-{
-    return i > 0 ? i : -i;
 }
 
 /// <summary>
@@ -109,6 +105,7 @@ int checkDiagonal(GameGrid* grid, int x, int y)
 void placeBombs(GameGrid* grid, const Input* firstInput, int difficulty)
 {
     int bombCount = grid->arraySize / difficulty;
+    grid->bombCount = 0;
 
     Array freeSpace = newArraySize(grid->arraySize);
     for (int i = 0; i < grid->arraySize; i++)
@@ -129,6 +126,8 @@ void placeBombs(GameGrid* grid, const Input* firstInput, int difficulty)
             checkDiagonal(grid, x, y))
         {
             grid->bombGrid->array[x + y * grid->gridSize] = 1;
+
+            grid->bombCount++;
             bombCount--;
         }
     }
@@ -181,10 +180,15 @@ void completeGrid(GameGrid* grid)
 /// <param name="x"></param>
 /// <param name="y"></param>
 void placeFlag(GameGrid* grid, int x, int y) {
+    if (grid->flagCount >= grid->bombCount)
+        return;
+
     if (grid->displayGrid->array[x + y * grid->gridSize] == 0) {
+        grid->flagCount++;
         grid->displayGrid->array[x + y * grid->gridSize] = 12;
     }
     else if (grid->displayGrid->array[x + y * grid->gridSize] == 12) {
+        grid->flagCount--;
         grid->displayGrid->array[x + y * grid->gridSize] = 0;
     }
 }
@@ -216,6 +220,8 @@ int digAt(GameGrid* grid, int x, int y)
                     for (int by = y - 1; by <= y + 1; by++)
                     {
                         if (by >= 0 && by < grid->gridSize && (grid->displayGrid->array[bx + by * grid->gridSize] == 0 || grid->displayGrid->array[bx + by * grid->gridSize] == 12)) {
+                            if (grid->displayGrid->array[bx + by * grid->gridSize] == 12)
+                                grid->flagCount--;
                             /*if (((bx == x - 1 && by == y - 1) || (bx == x + 1 && by == y - 1) || (bx == x + 1 && by == y + 1) || (bx == x - 1 && by == y + 1)))
                             {
                                 if (countNeighbours(grid, bx, by) > 0)

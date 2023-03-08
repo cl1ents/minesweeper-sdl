@@ -21,6 +21,7 @@ Mix_Chunk* hitmarker;
 Mix_Chunk* bubbles[6];
 
 TTF_Font* font;
+TTF_Font* uiFont;
 
 void initResources(SDL_Renderer *renderer) {
 	cursor = IMG_LoadTexture(renderer, "./res/images/cursor.png");
@@ -47,6 +48,7 @@ void initResources(SDL_Renderer *renderer) {
 	}
 
 	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 10);
+	uiFont = TTF_OpenFont("./res/Kavoon-Regular.ttf", 20);
 }
 
 void releaseResources() {
