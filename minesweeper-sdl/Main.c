@@ -23,10 +23,18 @@ GameGrid game;
 SDL_Color white = { 255, 255, 255 };
 SDL_Color shadow = { 0, 0, 0, 150 };
 
+#ifdef NDEBUG
+#define DEBUG 0
+#else
+#define DEBUG 1
+#endif
+
+
+
 // FUNCTIONS //
 
-void renderText(char* text, SDL_Rect dest, SDL_Renderer *renderer) {
-	return;
+void renderDebugText(char* text, SDL_Rect dest, SDL_Renderer *renderer) {
+	if (!DEBUG) return;
 	SDL_Color fg = { 0, 0, 0 };
 	SDL_Surface* surf = TTF_RenderText_Blended(font, text, fg);
 
@@ -287,16 +295,16 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 		SDL_Rect dest = { 10, 10, 0, 0 };
 		char buf[100];
 		sprintf_s(buf, 100, "Current FPS: %f", 1.0f / dt);
-		renderText(buf, dest, renderer);
+		renderDebugText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Average FPS: %f", 1000.0f / ((float)totalFrameTicks / totalFrames));
-		renderText(buf, dest, renderer);
+		renderDebugText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Frametime: %fms", dt);
-		renderText(buf, dest, renderer);
+		renderDebugText(buf, dest, renderer);
 		dest.y += 10;
 		sprintf_s(buf, 100, "Slot X: %d, Slot Y: %d, Slot index: %d", slotX, slotY, slotIndex);
-		renderText(buf, dest, renderer);
+		renderDebugText(buf, dest, renderer);
 
 		SDL_RenderCopy(renderer, cursor, NULL, &cursorRect);
 

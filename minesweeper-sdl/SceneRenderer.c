@@ -25,6 +25,7 @@ void RenderBackground(SDL_Renderer* renderer, int w, int h)
 {
 	// Background animation
 	SDL_SetRenderTarget(renderer, renderedBackground);
+	SDL_RenderClear(renderer);
 
 	SDL_RenderCopy(renderer, background_images[0], NULL, NULL);
 
@@ -33,13 +34,13 @@ void RenderBackground(SDL_Renderer* renderer, int w, int h)
 	RenderSprite(renderer, &seashell1_pos, &seashell, seashell.count-min(abs(seashellFrame), seashell.count-1)-1);
 
 	{ // Wave
-		SDL_Rect Origin = {0, 0, TextureSize.w, 5 };
-		SDL_Rect Destination = { 0, 0, TextureSize.w, 5 };
-		for (int y = 0; y < TextureSize.h; y++)
+		SDL_Rect Origin = {0, 0, TextureSize.w, 1 };
+		SDL_Rect Destination = { 0, 0, TextureSize.w, 1 };
+		for (float y = 0.0; y < TextureSize.h; y++)
 		{
 			Origin.y = y;
 			Destination.y = y;
-			Destination.x = sin(y/20.0+SDL_GetTicks()/1000.0)*5.0;
+			Destination.x = sin(y/20.0+(float)SDL_GetTicks()/1000.0)*5.0;
 			SDL_RenderCopy(renderer, renderedBackground, &Origin, &Destination);
 		}
 	}
