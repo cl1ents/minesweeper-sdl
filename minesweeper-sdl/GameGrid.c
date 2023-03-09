@@ -165,10 +165,7 @@ void completeGrid(GameGrid* grid)
 /// <param name="x"></param>
 /// <param name="y"></param>
 void placeFlag(GameGrid* grid, int x, int y) {
-    if (grid->flagCount >= grid->bombCount)
-        return;
-
-    if (grid->displayGrid->array[x + y * grid->gridSize] == 0) {
+    if (grid->displayGrid->array[x + y * grid->gridSize] == 0 && grid->flagCount < grid->bombCount) {
         grid->flagCount++;
         grid->displayGrid->array[x + y * grid->gridSize] = 12;
     }
