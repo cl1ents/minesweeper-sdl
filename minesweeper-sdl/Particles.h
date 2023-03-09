@@ -1,5 +1,5 @@
 #pragma once
-#define MAX_PARTICLES 500
+#define MAX_PARTICLES 1024
 #include "Sprite.h"
 
 typedef SDL_Texture SDL_Texture;

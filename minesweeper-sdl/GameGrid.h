@@ -1,6 +1,3 @@
-#define SIZE 20
-#define ARRAY_SIZE SIZE*SIZE
-
 typedef struct Input Input;
 typedef struct Array Array;
 
@@ -13,10 +10,11 @@ typedef struct GameGrid {
 	int difficulty;
 	int flagCount;
 	int bombCount;
+
+	int state;
 } GameGrid;
 
 void initGrid(GameGrid* grid);
-void resetGrid(GameGrid* grid);
 void completeGrid(GameGrid* grid);
 void placeBombs(GameGrid* grid, const Input* firstInput, int difficulty);
 

@@ -31,7 +31,7 @@ void RenderBackground(SDL_Renderer* renderer, int w, int h)
 
 	seashellFrame = ((SDL_GetTicks() / 30) % 300) - 150;
 	//printf("%d; %d\n", seashellFrame, max(abs(seashellFrame), seashell.count-1));
-	RenderSprite(renderer, &seashell1_pos, &seashell, seashell.count-min(abs(seashellFrame), seashell.count-1)-1);
+	RenderSprite(renderer, &seashell1_pos, &SEASHELL_SPRITE, SEASHELL_SPRITE.count-min(abs(seashellFrame), SEASHELL_SPRITE.count-1)-1);
 
 	{ // Wave
 		SDL_Rect Origin = {0, 0, TextureSize.w, 1 };

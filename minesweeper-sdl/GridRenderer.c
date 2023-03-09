@@ -51,7 +51,7 @@ void initGridRenderer(SDL_Renderer* renderer, GameGrid* game)
 	for (int i = 0; i < game->arraySize; i++)
 		insertInto(&oldDisplayGrid, game->displayGrid->array[i]);
 
-	gridTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, sprites.w * game->gridSize, sprites.h * game->gridSize);
+	gridTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, GRID_SPRITES.w * game->gridSize, GRID_SPRITES.h * game->gridSize);
 }
 
 int onGridClick(GameGrid* game)
@@ -85,8 +85,8 @@ void updateGrid(SDL_Renderer* renderer, GameGrid* game)
 {
 	Slot.x = 0;
 	Slot.y = 0;
-	Slot.w = sprites.w;
-	Slot.h = sprites.h;
+	Slot.w = GRID_SPRITES.w;
+	Slot.h = GRID_SPRITES.h;
 
 	SDL_SetRenderTarget(renderer, gridTex);
 
@@ -105,7 +105,7 @@ void updateGrid(SDL_Renderer* renderer, GameGrid* game)
 			//spriteSlice.x = spriteSize * display;
 
 			SDL_RenderFillRect(renderer, &Slot);
-			RenderSprite(renderer, &Slot, &sprites, display);
+			RenderSprite(renderer, &Slot, &GRID_SPRITES, display);
 			//SDL_RenderCopy(renderer, sprites, &spriteSlice, &Slot);
 
 			a = !a;

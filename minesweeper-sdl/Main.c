@@ -22,6 +22,13 @@
 GameGrid game;
 SDL_Color white = { 255, 255, 255 };
 SDL_Color shadow = { 0, 0, 0, 150 };
+int difficulties[] = {
+	10, 8, 5, 4
+};
+
+int sizes[] = {
+	10, 15, 20, 30
+};
 
 #ifdef NDEBUG
 #define DEBUG 0
@@ -63,6 +70,15 @@ void renderFontText(TTF_Font *font, char* text, SDL_Color fg, SDL_Rect dest, SDL
 	SDL_FreeSurface(surf);
 }
 
+int CurrentBGM = -1;
+void setBGM(int index)
+{
+	if (index != CurrentBGM || !Mix_PlayingMusic())
+		Mix_PlayMusic(bgm[index], 0);
+
+	CurrentBGM = index;
+}
+
 int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -87,6 +103,8 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 		return -1;
 	}
 
+	SDL_SetRenderDrawBlendMode(*renderer, SDL_BLENDMODE_BLEND);
+
 	//Initialize SDL_mixer
 	if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512) == -1)
 	{
@@ -99,6 +117,8 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 		return -1;
 	}
 
+	Mix_Volume(-1, 50);
+	Mix_VolumeMusic(30);
 	TTF_Init();
 
 	SDL_SetWindowResizable(*window, SDL_TRUE);
@@ -109,7 +129,6 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 
 int loop(SDL_Renderer* renderer, SDL_Window* window)
 {
-
 	int running = 1;
 	Uint32 totalFrameTicks = 0;
 	Uint32 totalFrames = 0;
@@ -137,7 +156,10 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 	int fullscreen = 0;
 	int toPlay = 0;
 
+	int bannerStart = SDL_GetTicks();
+
 	updateGrid(renderer, &game);
+	int ingame = 0;
 	while (running) {
 		totalFrames++;
 		Uint32 startTicks = SDL_GetTicks();
@@ -163,7 +185,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				clicked = 1;
 				flag = e.button.button == SDL_BUTTON_RIGHT;
 				break;
-
 			case SDL_WINDOWEVENT:
 				switch (e.window.event) {
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -175,10 +196,11 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			case SDL_KEYDOWN:
 				switch (e.key.keysym.sym)
 				{
-				case SDLK_RETURN:
-					resetGrid(&game);
-					initGridRenderer(renderer, &game);
-					updateGrid(renderer, &game);
+				case SDLK_ESCAPE:
+					if (ingame)
+						ingame = 0;
+					else
+						running = 0;
 					break;
 				case SDLK_F11:
 					fullscreen = !fullscreen;
@@ -205,6 +227,10 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 		RenderBackground(renderer, w, h);
 
+		if (game.state != 0 && clicked)
+			ingame = 0;
+
+		if (ingame)
 		{
 			int smallest = min(w * .8, h * .8);
 
@@ -220,7 +246,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				mousePosition.x, mousePosition.y, 0
 			};
 
-
 			if (SDL_PointInRect(&mousePosition, &Place) && clicked)
 			{
 				slotX = (mousePosition.x - Place.x) / slotSize;
@@ -231,11 +256,19 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				click.y = slotY;
 				click.flag = flag;
 
-				if (handleClick(&game, &click))
-					completeGrid(&game);
+				int cleared = 0;
+				switch (handleClick(&game, &click))
+				{
+				case 1:
+					cleared = 1;
+					break; // CLEAR
+				case 2:
+					break; // LOOSE
+				}
 
-				toPlay += onGridClick(&game);
+				onGridClick(&game);
 				updateGrid(renderer, &game);
+				bannerStart = SDL_GetTicks();
 			}
 
 			renderGrid(renderer, &Place, &game);
@@ -244,7 +277,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			Place.w = slotSize;
 			Place.y -= slotSize;
 
-			RenderSprite(renderer, &Place, &sprites, 12);
+			RenderSprite(renderer, &Place, &GRID_SPRITES, 12);
 
 			Place.y += slotSize;
 			Place.x += slotSize + 5;
@@ -259,12 +292,86 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			Place.y -= 2;
 			Place.x -= 2;
 			renderFontText(uiFont, buf, white, Place, renderer);
-		}
 
-		if (toPlay > 0 && (rand() % 3) == 0) {
-			//Mix_PlayChannel(-1, bubbles[rand() % 7], 0);
-			toPlay -= rand() % 15;
-			toPlay = max(toPlay, 0);
+			Place.w = w;
+			Place.h = w/3;
+			Place.x = 0;
+			Place.y = h / 2 - Place.h / 2;
+
+			int bannerFrame;
+			switch (game.state)
+			{
+			case 1: // Lost
+				bannerFrame = SDL_clamp((SDL_GetTicks() - bannerStart) / (1000 / 24) /*24FPS*/, 0, LOSEBANNER_SPRITE.count - 1);
+				RenderSprite(renderer, &Place, &LOSEBANNER_SPRITE, bannerFrame);
+				break;
+			case 2: // Win
+				bannerFrame = SDL_clamp((SDL_GetTicks() - bannerStart) / (1000 / 24) /*24FPS*/, 0, WINBANNER_SPRITE.count - 1);
+				RenderSprite(renderer, &Place, &WINBANNER_SPRITE, bannerFrame);
+				break;
+			}
+
+			setBGM(game.state);
+		}
+		else 
+		{
+			float smallest = min(w * .9, h * .9);
+
+			SDL_Rect uiBounds = {
+				centerX - (smallest / 2.0), centerY - (smallest / 2.0),
+				smallest, smallest
+			};
+
+			SDL_Rect Place;
+			{ // Play button
+				Place.h = smallest * .15;
+				Place.w = smallest * .5;
+				Place.x = uiBounds.x + smallest * .5 - Place.w * .5;
+				Place.y = uiBounds.y + smallest * .9 - Place.h;
+
+				//SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+				//SDL_RenderFillRect(renderer, &Place);
+
+				if (SDL_PointInRect(&mousePosition, &Place))
+				{
+					RenderSprite(renderer, &Place, &UIBUTTONS_SPRITE, 0 + UIBUTTONS_SPRITE.count/2);
+					if (clicked)
+					{
+						initGrid(&game);
+						initGridRenderer(renderer, &game);
+						updateGrid(renderer, &game);
+						ingame = 1;
+					}
+				} 
+				else
+					RenderSprite(renderer, &Place, &UIBUTTONS_SPRITE, 0);
+			}
+
+			{ // Difficulties
+				Place.h = smallest * .15;
+				Place.w = smallest * .15;
+				Place.x = uiBounds.x + smallest * .5;
+				Place.y = uiBounds.y + smallest * .74 - Place.h;
+
+				Place.x -= Place.w * 2;
+				for (int i = 0; i < 4; i++) {
+					if (SDL_PointInRect(&mousePosition, &Place) && clicked)
+					{
+						game.gridSize = sizes[i];
+						game.difficulty = difficulties[i];
+						game.arraySize = game.gridSize * game.gridSize;
+					}
+
+					RenderSprite(renderer, &Place, &UIDIFFICULTY_SPRITE, i + (game.difficulty == difficulties[i]) * (UIDIFFICULTY_SPRITE.count / 2));
+					Place.x += Place.w;
+				}
+			}
+
+			// Logo!
+			uiBounds.h = uiBounds.h * .3;
+			SDL_RenderCopy(renderer, logo, NULL, &uiBounds);
+
+			setBGM(0);
 		}
 
 		RenderForeground(renderer, w, h);
@@ -320,8 +427,8 @@ int main(int argc, char* argv[])
 	Array displayGrid;
 	game.displayGrid = &displayGrid;
 
-	game.gridSize = 20;
-	game.difficulty = 8;
+	game.gridSize = sizes[1];
+	game.difficulty = difficulties[1];
 	game.arraySize = game.gridSize * game.gridSize;
 
 	initArraySize(game.displayGrid, game.arraySize);

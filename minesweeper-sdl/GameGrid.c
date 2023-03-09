@@ -36,9 +36,17 @@ int countNeighbours(GameGrid* grid, int x, int y);
 void initGrid(GameGrid* grid)
 {
     grid->moveCount = 0;
+    grid->state = 0;
 
     grid->bombCount = grid->arraySize / grid->difficulty;
     grid->flagCount = 0;
+
+    free(grid->bombGrid->array);
+    initArraySize(grid->bombGrid, grid->arraySize);
+
+    free(grid->displayGrid->array);
+    initArraySize(grid->displayGrid, grid->arraySize);
+
     // static Array bombGrid = newArraySize(grid->arraySize);
     // grid->bombGrid;
     for (int i = 0; i < grid->arraySize; i++)
@@ -49,29 +57,6 @@ void initGrid(GameGrid* grid)
     for (int i = 0; i < grid->arraySize; i++)
     {
         insertInto(grid->displayGrid, 0);
-    }
-}
-
-/// <summary>
-/// Resets grid
-/// </summary>
-/// <param name="grid"></param>
-void resetGrid(GameGrid* grid)
-{
-    grid->moveCount = 0;
-
-    grid->bombCount = grid->arraySize / grid->difficulty;
-    grid->flagCount = 0;
-    // static Array bombGrid = newArraySize(grid->arraySize);
-    // grid->bombGrid;
-    for (int i = 0; i < grid->arraySize; i++)
-    {
-        grid->bombGrid->array[i] = 0;
-    }
-
-    for (int i = 0; i < grid->arraySize; i++)
-    {
-        grid->displayGrid->array[i] = 0;
     }
 }
 
@@ -252,7 +237,16 @@ int handleClick(GameGrid* grid, Input* input) {
             if (!grid->moveCount)
                 placeBombs(grid, input, grid->difficulty);
             grid->moveCount++;
-            return digAt(grid, input->x, input->y);
+            if (digAt(grid, input->x, input->y))
+            {
+                grid->state = 1;
+                completeGrid(grid);
+                return 2;
+            } 
+            else if(countFound(grid) == grid->bombCount)
+                grid->state = 2;
+
+            return 1;
         }
     }
     return 0;
