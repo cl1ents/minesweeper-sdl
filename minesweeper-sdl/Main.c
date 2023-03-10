@@ -462,7 +462,12 @@ int main(int argc, char* argv[])
 	initSceneRenderer(renderer);
 
 	loop(renderer, window);
+
 	releaseResources();
+	TTF_Quit();
+	Mix_Quit();
+	free(displayGrid.array);
+	free(bombGrid.array);
 	SDL_DestroyWindow(window);
 
 	Quit:
