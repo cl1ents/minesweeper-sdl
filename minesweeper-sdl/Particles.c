@@ -43,20 +43,6 @@ void createParticle(SDL_Rect* initial, int lifetime, Sprite* sprite, void* step)
 	particles[index].frame = 0;
 
 	particles[index].active = 1;
-
-	/*
-	struct SDL_Rect;
-	int startTime;
-	int lifetime;
-	int active;
-
-	int index;
-
-	Sprite* sprite;
-	int frame;
-
-	int (*step)(void*, float);
-	*/
 }
 
 void particleStep(SDL_Renderer* renderer, float dt) {
