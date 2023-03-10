@@ -1,6 +1,6 @@
 # minesweeper-sdl
 
-:troll:
+:trollface:
 
 # Compiling
 
@@ -23,4 +23,6 @@ SDL2
         └───optional
 ```
 
-then feel free to compile :troll:
+then feel free to compile :trollface:
+
+sorry for not using submodules
