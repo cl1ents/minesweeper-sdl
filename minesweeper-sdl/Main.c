@@ -470,3 +470,7 @@ int main(int argc, char* argv[])
 
 	return EXIT_SUCCESS;
 }
+
+void SDL_SetWindowIcon(SDL_Window* window, SDL_Surface* icon)
+{
+}
