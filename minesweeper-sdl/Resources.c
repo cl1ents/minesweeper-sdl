@@ -15,7 +15,6 @@ Sprite GRID_SPRITES;
 Sprite SEASHELL_SPRITE;
 
 Sprite BUBBLES_SPRITE;
-Sprite EXPLOSION_SPRITE;
 
 Sprite UIBUTTONS_SPRITE;
 Sprite UIDIFFICULTY_SPRITE;
@@ -54,12 +53,6 @@ void initResources(SDL_Renderer *renderer) {
 	BUBBLES_SPRITE.w = 9;
 	BUBBLES_SPRITE.h = 9;
 	initSprite(&BUBBLES_SPRITE);
-
-	// Explosion
-	EXPLOSION_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/explosion.png");
-	EXPLOSION_SPRITE.w = 32;
-	EXPLOSION_SPRITE.h = 32;
-	initSprite(&EXPLOSION_SPRITE);
 
 	// Ui Buttons
 	UIBUTTONS_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/buttons.png");
@@ -106,10 +99,27 @@ void initResources(SDL_Renderer *renderer) {
 
 void releaseResources() {
 	SDL_DestroyTexture(cursor);
+	SDL_DestroyTexture(logo);
 
 	SDL_DestroyTexture(GRID_SPRITES.Texture);
 	SDL_DestroyTexture(SEASHELL_SPRITE.Texture);
+	SDL_DestroyTexture(BUBBLES_SPRITE.Texture);
+	SDL_DestroyTexture(UIBUTTONS_SPRITE.Texture);
+	SDL_DestroyTexture(UIDIFFICULTY_SPRITE.Texture);
+	SDL_DestroyTexture(WINBANNER_SPRITE.Texture);
+	SDL_DestroyTexture(LOSEBANNER_SPRITE.Texture);
 
 	SDL_DestroyTexture(background_images[0]);
 	SDL_DestroyTexture(background_images[1]);
+
+	Mix_FreeMusic(bgm[0]);
+	Mix_FreeMusic(bgm[1]);
+	Mix_FreeMusic(bgm[2]);
+
+	Mix_FreeChunk(hitmarker);	
+	for (int i = 0; i < 6; i++)
+		Mix_FreeChunk(bubbles[i]);
+
+	TTF_CloseFont(font);
+	TTF_CloseFont(uiFont);
 }
