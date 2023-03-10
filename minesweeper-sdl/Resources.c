@@ -76,12 +76,12 @@ void initResources(SDL_Renderer *renderer) {
 	// Win Banner
 	WINBANNER_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/winBanner.png");
 	WINBANNER_SPRITE.w = 456;
-	WINBANNER_SPRITE.h = 150;
+	WINBANNER_SPRITE.h = 250;
 	initSprite(&WINBANNER_SPRITE);
 
 	// Lose Banner
 	LOSEBANNER_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/loseBanner.png");
-	LOSEBANNER_SPRITE.w = 455;
+	LOSEBANNER_SPRITE.w = 456;
 	LOSEBANNER_SPRITE.h = 250;
 	initSprite(&LOSEBANNER_SPRITE);
 

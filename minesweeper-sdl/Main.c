@@ -87,7 +87,7 @@ int initWindow(SDL_Window** window, SDL_Renderer** renderer)
 		return -1;
 	}
 
-	*window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+	*window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
 	*renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	//SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_SHOWN, window, renderer);
 	
@@ -227,9 +227,6 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 
 		RenderBackground(renderer, w, h);
 
-		if (game.state != 0 && clicked)
-			ingame = 0;
-
 		if (ingame)
 		{
 			int smallest = min(w * .8, h * .8);
@@ -246,7 +243,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				mousePosition.x, mousePosition.y, 0
 			};
 
-			if (SDL_PointInRect(&mousePosition, &Place) && clicked)
+			if (game.state == 0 && clicked && SDL_PointInRect(&mousePosition, &Place))
 			{
 				slotX = (mousePosition.x - Place.x) / slotSize;
 				slotY = (mousePosition.y - Place.y) / slotSize;
@@ -269,6 +266,7 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 				onGridClick(&game);
 				updateGrid(renderer, &game);
 				bannerStart = SDL_GetTicks();
+				clicked = 0;
 			}
 
 			renderGrid(renderer, &Place, &game);
@@ -294,21 +292,31 @@ int loop(SDL_Renderer* renderer, SDL_Window* window)
 			renderFontText(uiFont, buf, white, Place, renderer);
 
 			Place.w = w;
-			Place.h = w/3;
+			Place.h = w/2;
 			Place.x = 0;
 			Place.y = h / 2 - Place.h / 2;
 
-			int bannerFrame;
-			switch (game.state)
+			if (game.state != 0)
 			{
-			case 1: // Lost
-				bannerFrame = SDL_clamp((SDL_GetTicks() - bannerStart) / (1000 / 24) /*24FPS*/, 0, LOSEBANNER_SPRITE.count - 1);
-				RenderSprite(renderer, &Place, &LOSEBANNER_SPRITE, bannerFrame);
-				break;
-			case 2: // Win
-				bannerFrame = SDL_clamp((SDL_GetTicks() - bannerStart) / (1000 / 24) /*24FPS*/, 0, WINBANNER_SPRITE.count - 1);
-				RenderSprite(renderer, &Place, &WINBANNER_SPRITE, bannerFrame);
-				break;
+				if (clicked)
+					ingame = 0;
+
+				int bannerFrame;
+				switch (game.state)
+				{
+				case 1: // Lost
+					bannerFrame = SDL_clamp((SDL_GetTicks() - bannerStart) / (1000 / 24) /*24FPS*/, 0, LOSEBANNER_SPRITE.count - 1);
+					if (bannerFrame >= LOSEBANNER_SPRITE.count - 2)
+						bannerFrame = LOSEBANNER_SPRITE.count - 2 + ((SDL_GetTicks() - bannerStart) / 500) % 2;
+					RenderSprite(renderer, &Place, &LOSEBANNER_SPRITE, bannerFrame);
+					break;
+				case 2: // Win
+					bannerFrame = SDL_clamp((SDL_GetTicks() - bannerStart) / (1000 / 24) /*24FPS*/, 0, WINBANNER_SPRITE.count - 1);
+					if (bannerFrame >= WINBANNER_SPRITE.count - 2)
+						bannerFrame = WINBANNER_SPRITE.count - 2 + ((SDL_GetTicks() - bannerStart) / 500) % 2;
+					RenderSprite(renderer, &Place, &WINBANNER_SPRITE, bannerFrame);
+					break;
+				}
 			}
 
 			setBGM(game.state);

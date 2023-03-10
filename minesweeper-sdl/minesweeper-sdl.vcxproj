@@ -121,7 +121,7 @@ xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\SDL2\lib\x64;$(SolutionDir)\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2main.lib;SDL2_ttf.lib;SDL2_image.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -144,7 +144,7 @@ xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -172,10 +172,17 @@ xcopy /s $(ProjectDir).\res\ $(OutputPath).\res\ /F /R /Y /I</Command>
     <ClInclude Include="GridRenderer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MouseState.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="SceneRenderer.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="Particles.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="minesweeper-sdl.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

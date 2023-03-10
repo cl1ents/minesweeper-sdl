@@ -262,7 +262,7 @@ int countFound(GameGrid* grid)
 {
     int count = 0;
     for (int i = 0; i < grid->arraySize; i++) {
-        count += grid->displayGrid->array[i] == 0;
+        count += grid->displayGrid->array[i] == 0 || grid->displayGrid->array[i] == 12;
     }
     return count;
 }
