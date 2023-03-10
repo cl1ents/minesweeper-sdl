@@ -62,7 +62,7 @@ void initResources(SDL_Renderer *renderer) {
 	initSprite(&EXPLOSION_SPRITE);
 
 	// Ui Buttons
-	UIBUTTONS_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/button.png");
+	UIBUTTONS_SPRITE.Texture = IMG_LoadTexture(renderer, "./res/images/buttons.png");
 	UIBUTTONS_SPRITE.w = 115;
 	UIBUTTONS_SPRITE.h = 35;
 	initSprite(&UIBUTTONS_SPRITE);
